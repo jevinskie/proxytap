@@ -12,6 +12,7 @@ gateway_ip = sys.argv[2]
 gateway_mac = sys.argv[3]
 
 arp_int = ArpInterceptor(gateway_ip, gateway_mac, tap_if)
+#tcp_int = TcpInterceptor(gateway_ip, gateway_mac, tap_if)
 
 L2socket = conf.L2listen
 s = L2socket(iface=tap_if)
@@ -28,7 +29,8 @@ def intercept_packet(watcher, revents):
         arp_int.process_req(pkt)
     if TCP in pkt:
         # tcp intercept
-        tcp_int.process_pkt(pkt)
+        #tcp_int.process_pkt(pkt)
+        pass
     return
 
 def sig_cb(watcher, revents):
@@ -50,6 +52,7 @@ loop = pyev.default_loop()
 io = loop.io(s, pyev.EV_READ, intercept_packet)
 io.start()
 sig = loop.signal(signal.SIGINT, sig_cb)
+sig.start()
 loop.data = [io, sig]
 loop.start()
 
