@@ -1,17 +1,15 @@
-from scapy.config import conf, MTU
 import pyev
 import signal
+import sys
 
 
 class InterceptLoop(object):
-    def __init__(self, int_cb, tap_if):
-        L2socket = conf.L2listen
-        sock = L2socket(iface=tap_if)
-        self.sock = sock
+    def __init__(self, int_cb, int_sock):
+        self.sock = int_sock
         
         loop = pyev.default_loop()
         
-        io = loop.io(sock, pyev.EV_READ, self.io_cb)
+        io = loop.io(int_sock, pyev.EV_READ, self.io_cb)
         io.start()
         
         sig = loop.signal(signal.SIGINT, self.sig_cb)
@@ -38,10 +36,9 @@ class InterceptLoop(object):
         loop.stop(pyev.EVBREAK_ALL)
 
     def io_cb(self, watcher, revents):
-        pkt = self.sock.recv(MTU)
+        pkt = self.sock.recv()
         if pkt == None:
             return
         else:
             self.int_cb(pkt)
-
 
