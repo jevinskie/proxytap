@@ -8,7 +8,8 @@ class ArpInterceptor(object):
 
     def process_req(self, pkt):
         a = pkt[ARP]
-        if a.pdst == self.gateway_ip:
+        # op is a arp lookup
+        if a.op == 1 and a.pdst == self.gateway_ip:
             res = Ether(src=self.gateway_mac, dst=a.hwsrc)/ARP(op="is-at",
                         psrc=self.gateway_ip, hwsrc=self.gateway_mac,
                         pdst=a.psrc, hwdst=a.hwsrc)
