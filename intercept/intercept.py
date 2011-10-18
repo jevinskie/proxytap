@@ -17,6 +17,7 @@ int_sock = InterceptSocket(tap_if)
 arp_int = ArpInterceptor(gateway_ip, gateway_mac, int_sock)
 tcp_bridge = PlainTcpBridge()
 tcp_int = TcpInterceptor(gateway_ip, gateway_mac, int_sock, tcp_bridge)
+tcp_bridge.set_tcp_interceptor(tcp_int)
 
 def intercept_packet(pkt):
     print "got packet"

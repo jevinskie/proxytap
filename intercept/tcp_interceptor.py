@@ -10,17 +10,37 @@ class TcpInterceptor(object):
         self.bridge = bridge
 
     def process_pkt(self, pkt):
-        ip = pkt[IP]
+        hwsrc = self.get_hwsrc(pkt)
         tcp = pkt[TCP]
-        sock = (ip.src, tcp.sport, ip.dst, tcp.dport)
+        sock = self.get_socket(pkt)
         print sock
         if sock in self.sockets:
             pass
         elif self.swap_socket(sock) in self.sockets:
-            pass
+            print "how did this happen, saw incoming traffic"
         else:
-            pass
+            print "connecting"
+            self.sockets[sock] = {'hwsrc': hwsrc, 'state': tcp_states.SYN_SENT}
+            self.bridge.connect(sock)
 
-    def swap_socket(self, s):
-        return (s[2], s[3], s[0], s[1])
+    def swap_socket(self, sock):
+        return (sock[2], sock[3], sock[0], sock[1])
+
+    def get_hwsrc(self, pkt):
+        eth = pkt[Ether]
+        return eth.src
+
+    def get_socket(self, pkt):
+        ip = pkt[IP]
+        tcp = pkt[TCP]
+        return (ip.src, tcp.sport, ip.dst, tcp.dport)
+
+    def send(self, sock, data):
+        pass
+
+    def finish_connect(self, sock):
+        sock_state = self.sockets[sock]
+        self.int_sock.send(Ether(src=self.gateway_mac, dst=sock_state['hwsrc'])/IP(
+            dst=sock[0], src=sock[2])/TCP(sport=sock[1], dport=sock[3], flags='SA'))
+        return True
 
