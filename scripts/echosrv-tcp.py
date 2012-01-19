@@ -12,9 +12,13 @@ class EchoHandler(SocketServer.BaseRequestHandler):
         while True:
             data = self.request.recv(1024)
             if len(data) != 0:
-                print "%s wrote:" % self.client_address[0]
+                cli_ip, cli_port = self.client_address
+                srv_ip, srv_port = self.request.getsockname()
+                print "%s:%s -> %s:%s  got:" % (cli_ip, cli_port, srv_ip, srv_port),
                 print data,
                 self.request.send(data.upper())
+                print "%s:%s -> %s:%s sent:" % (srv_ip, srv_port, cli_ip, cli_port),
+                print data.upper(),
             else:
                 break
 
